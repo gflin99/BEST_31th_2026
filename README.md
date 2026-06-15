@@ -1,22 +1,49 @@
-# Microbial Fermentation Trend Prediction
+# BEST31: Models Framework for Fermentation Process Prediction
 
-## 專案目的
-本專案旨在利用深度學習時間序列模型，針對微生物醱酵過程中的關鍵指標：**生物量 (OD600)、乳酸濃度 (LA) 進行下一時刻預測。
+This repository contains the official implementation for our research paper. It features a rigorous evaluation framework for bio-process time-series prediction using Recurrent Neural Networks (RNN) and Autoencoders.
 
-專案中實作並比較了四種神經網路架構：
-1. **AE-GRU** (Autoencoder 結合 Gated Recurrent Unit)
-2. **AE-LSTM** (Autoencoder 結合 Long Short-Term Memory)
-3. **vinalla GRU**
-4. **vinalla LSTM**
+## Research Highlights
+* **Rigorous Validation:** Implements **Leave-One-Bio-Group-Out Cross Validation (LOBOCV)** across 9 independent fermentation experiments (`ExpID`) to guarantee out-of-batch generalization.
+* **Robustness & Reproducibility:** Evaluated across **10 different random seeds** (1 fixed anchor seed `24` + 9 randomly generated seeds) to ensure statistical significance.
+* **Transfer Learning Architecture:** Features pre-trained **Autoencoders (AE)** integrated with **GRU/LSTM** networks, benchmarked against pure recurrent baselines.
 
-透過建立穩健的模型，我們能夠有效捕捉醱酵槽內的非線性動態變化，為未來的生物製程優化與自動化控制提供可靠的預測基礎。
+---
 
-## 環境需求
-本專案基於 Python 3 開發，核心依賴套件如下：
-- TensorFlow / Keras (包含對 GPU 加速的支援)
-- Pandas & NumPy (資料處理)
-- Scikit-learn (特徵縮放 MinMaxScaler 與模型評估)
+## Repository Structure
+* `train_eval_lobocv.py`: Main execution script containing model architectures, LOBOCV loop, and evaluation.
+* `data/`: Contains a sample slice of `LAB_train2025_171.csv` for environment and code verification.
 
-安裝依賴套件：
+---
+
+## Environment Setup
+
+Ensure you have Python 3.8+ installed. Install the required dependencies via `pip`:
+
 ```bash
-pip install -r requirements.txt
+pip install tensorflow numpy pandas scikit-learn
+```
+
+---
+
+## How to Reproduce My Results
+
+### 1. Quick Verification (Highly Recommended for Reviewers)
+The full experiment (N_exp experiments × N_seed seeds × N_mod models) involves **360 training runs in my study** and may take hours. To quickly verify the pipeline functionality on the sample data, run with reduced epochs:
+
+```bash
+python train_eval_lobocv.py --ae-epochs 5 --gru-epochs 5 --output quick_test_results.csv
+```
+
+### 2. Full Reproduction
+To execute the complete benchmarking suite matching the paper's settings:
+
+```bash
+python train_eval_lobocv.py
+```
+
+---
+
+## Expected Outputs
+Upon completion, the script automatically exports `results_four_models.csv` and prints two summary tables to the terminal:
+1. **Overall Performance:** Mean, standard deviation, min, and max of $R^2$ scores across all seeds and groups for each model type (`AE-GRU`, `AE-LSTM`, `Pure-GRU`, `Pure-LSTM`).
+2. **Detailed Breakdown:** Cross-tabulated mean $R^2$ performance per `test_exp` block.
